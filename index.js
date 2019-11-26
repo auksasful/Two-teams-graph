@@ -76,7 +76,13 @@ cy.on("tap", "node", function(e) { createEdge(e); });
     let listener = null;
 
     function buttonClick(button) {
-        if (state) {
+		
+		
+		//console.log(getAdjacencyStructure());
+		alert("Jungiosios komponentės: " + countComponents(nodeCount, getAdjacencyStructure()));
+		
+		
+        /*if (state) {
             state = false;
             $(button).text("Click me");
             cy.$("node, edge").removeClass("path");
@@ -96,15 +102,134 @@ cy.on("tap", "node", function(e) { createEdge(e); });
                 start = node.target.id();
                 $(button).text("Select END node");
             } else {
-                calculatePath(start, node.target.id());
+				alert(numberOfConnectedComponents());
+               // calculatePath(start, node.target.id());
                 start = null;
                 state = true;
                 $(button).text("Again");
             }
-        });
+        });*/
 
     }
 } //--
+
+
+function checkConnectivity(){
+	
+	
+}
+
+
+
+
+	let counterComponents;
+    function countComponents(n, edges) {
+        counterComponents = n;
+        let root = new Array(n);
+        for (i = 0; i < n; ++i) root[i] = i;
+		edges.forEach(function(edge){
+			union(root, edge[0], edge[1]);
+		});
+		
+        return counterComponents;
+    }
+
+    function find(root, i) {
+        if (root[i] == i) return i;
+        return find(root, root[i]);
+    }
+
+    function union(root, source, dst) {
+        let srcRoot = find(root, source);
+        let dstRoot = find(root, dst);
+        if (srcRoot != dstRoot) {
+            root[srcRoot] = dstRoot;
+            --counterComponents;
+        }
+    }
+
+
+
+
+
+
+function numberOfConnectedComponents() 
+{ 
+	let nodes = getAdjacencyStructure();
+    // Mark all the vertices as not visited 
+    let visited = Array(nodes.length).fill(false);
+  
+    // To store the number of connected components 
+    let count = 0; 
+    for (v = 0; v < nodes.length; v++) 
+        visited[v] = false; 
+  
+    for (v = 0; v < nodes.length; v++) { 
+        if (visited[v] == false) { 
+		console.log("visit" + count);
+            DFS(v, visited); 
+            count += 1; 
+        } 
+    } 
+  
+    return count; 
+} 
+  
+  
+  
+function DFS(node, visited) {
+   // Create a Stack and add our initial node in it
+   let nodes = getAdjacencyStructure();
+   let s = new Stack(nodes.length);
+   let explored = new Set();
+   s.push(node);
+   
+   visited[v] = true;
+
+   // Mark the first node as explored
+   explored.add(node);
+
+   let i = 0;
+   // We'll continue till our Stack gets empty
+   while (!s.isEmpty()) {
+      let t = s.pop();
+
+      // Log every element that comes out of the Stack
+      console.log(t);
+
+      // 1. In the edges object, we search for nodes this node is directly connected to.
+      // 2. We filter out the nodes that have already been explored.
+      // 3. Then we mark each unexplored node as explored and push it to the Stack.
+	  if(nodes[t] !== undefined && !visited[i]){
+		  nodes[t]
+		  .filter(n => !explored.has(n))
+		  .forEach(n => {
+			 explored.add(n);
+			 s.push(n);
+		  });
+	  }
+	  console.log(i);
+	  i++;
+   }
+}
+  
+function DFSUtil(v, visited) 
+{ 
+	let adj = getAdjacencyStructure();
+    // Mark the current node as visited 
+    visited[v] = true; 
+  
+    // Recur for all the vertices 
+    // adjacent to this vertex 
+   // list<int>::iterator i; 
+  
+    for (i = 0; i < adj.length; ++i) {
+        if (!visited[i]) 
+            DFSUtil(i, visited); 
+	}
+} 
+
+
 
 
 
@@ -115,10 +240,13 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
         let adjacentNodes = [];
         cy.$id(i + 1).neighbourhood(`edge[source="${i+1}"]`).forEach(
             n => {
-                adjacentNodes.push(n.target().id()); //adjacent node
+				//console.log("adj node" + n.target().id());
+				if(n.source().id().length > 0 && n.target().id().length > 0){
+					adjacentNodes.push(n.source().id());
+					adjacentNodes.push(n.target().id()); //adjacent node
+				}
             }
         );
-
         adjacencyNodes.push(adjacentNodes);
     }
     return adjacencyNodes;
@@ -148,3 +276,59 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
         previous = null;
     }
 }
+
+
+// Stack class 
+class Stack { 
+  
+    // Array is used to implement stack 
+    constructor() 
+    { 
+        this.items = []; 
+    } 
+  
+		// Functions to be implemented 
+		// push function 
+	push(element) 
+	{ 
+		// push element into the items 
+		this.items.push(element); 
+	} 
+
+
+		// pop function 
+	pop() 
+	{ 
+		// return top most element in the stack 
+		// and removes it from the stack 
+		// Underflow if stack is empty 
+		if (this.items.length == 0) 
+			return "Underflow"; 
+		return this.items.pop(); 
+	} 
+		// peek function 
+	peek() 
+	{ 
+		// return the top most element from the stack 
+		// but does'nt delete it. 
+		return this.items[this.items.length - 1]; 
+	}
+
+	 
+		// isEmpty function 
+	isEmpty() 
+	{ 
+		// return true if stack is empty 
+		return this.items.length == 0; 
+	} 
+
+	 
+		// printStack function 
+	printStack() 
+	{ 
+		var str = ""; 
+		for (var i = 0; i < this.items.length; i++) 
+			str += this.items[i] + " "; 
+		return str; 
+	}  
+} 
