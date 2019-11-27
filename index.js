@@ -169,12 +169,14 @@ function checkConnectivity(){
 
     function find(root, i) {
 		touched[i] = 1;
+		console.log(i);
         if (root[i] == i){ 
 		return i;
 		}
 		console.log("extra search");
         return find(root, root[i]);
     }
+	
 
     function union(root, source, dst) {
 		//console.log("source: " + source + " dst: " + dst);
@@ -182,6 +184,7 @@ function checkConnectivity(){
 		touched[source] = 1;
 		touched[dst] = 1;
         let srcRoot = find(root, source);
+		console.log("srcRoot: " + srcRoot);
         let dstRoot = find(root, dst);
 		
 		//vertices /= 2;
@@ -202,7 +205,47 @@ function checkConnectivity(){
     }
 
 
+	
+	
+	
+let bfsCounter = 0;
+	
+function BFS(node) {
+	bfsCounter = 0;
+	let edges = getAdjacencyStructure();
+	console.log("edges count: " + edges.length);
+   // Create a Queue and add our initial node in it
+   let q = new Queue(nodeCount);
+   let explored = new Set();
+   q.enqueue(node);
 
+   // Mark the first node as explored explored.
+   explored.add(node);
+   if(edges.length === 1)
+	bfsCounter+=2;
+   // We'll continue till our queue gets empty
+   while (!q.isEmpty()) {
+      let t = q.dequeue();
+
+      // Log every element that comes out of the Queue
+      console.log(t);
+	  
+
+      // 1. In the edges object, we search for nodes this node is directly connected to.
+      // 2. We filter out the nodes that have already been explored.
+      // 3. Then we mark each unexplored node as explored and add it to the queue.
+	  if(edges[t] != undefined){
+		  bfsCounter++;
+		  edges[t]
+		  .filter(n => !explored.has(n))
+		  .forEach(n => {
+			 explored.add(n);
+			 q.enqueue(n);
+		  });
+	  }
+   }
+}
+	
 
 
 
@@ -230,6 +273,9 @@ function numberOfConnectedComponents()
   
   
   
+  
+  
+  
 function DFS(node, visited) {
    // Create a Stack and add our initial node in it
    let nodes = getAdjacencyStructure();
@@ -237,7 +283,7 @@ function DFS(node, visited) {
    let explored = new Set();
    s.push(node);
    
-   visited[v] = true;
+   visited[node] = true;
 
    // Mark the first node as explored
    explored.add(node);
@@ -295,17 +341,17 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
 			
             n => {
 				console.log(n);
-				//console.log("adj node" + n.target().id());
+				console.log("adj node" + n.target().id());
 				//if(n.source().id().length > 0 && n.target().id().length > 0){
 					adjacentNodes.push(n.source().id());
 					adjacentNodes.push(n.target().id()); //adjacent node
 				//}
             }
         );
-		if(adjacentNodes.length <= 2){
+		if(adjacentNodes.length <= 2 && adjacentNodes.length !== 0){
 			adjacencyNodes.push(adjacentNodes);
 		}
-		else{
+		else if(adjacentNodes.length !== 0){
 			var j,k,temparray,chunk = 2;
 			for (j=0,k=adjacentNodes.length; j<k; j+=chunk) {
 				temparray = adjacentNodes.slice(j,j+chunk);
@@ -420,6 +466,62 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
 		}).run();
 	}
 }
+
+
+// Queue class 
+class Queue 
+{ 
+    // Array is used to implement a Queue 
+    constructor() 
+    { 
+        this.items = []; 
+    } 
+                  
+    // Functions to be implemented 
+    // enqueue function 
+	enqueue(element) 
+	{     
+		// adding element to the queue 
+		this.items.push(element); 
+	} 
+    // dequeue function 
+	dequeue() 
+	{ 
+		// removing element from the queue 
+		// returns underflow when called  
+		// on empty queue 
+		if(this.isEmpty()) 
+			return "Underflow"; 
+		return this.items.shift(); 
+	} 
+    // front function 
+	front() 
+	{ 
+		// returns the Front element of  
+		// the queue without removing it. 
+		if(this.isEmpty()) 
+			return "No elements in Queue"; 
+		return this.items[0]; 
+	} 
+
+	// isEmpty function 
+	isEmpty() 
+	{ 
+		// return true if the queue is empty. 
+		return this.items.length == 0; 
+	} 
+    // printQueue function 
+	printQueue() 
+	{ 
+		var str = ""; 
+		for(var i = 0; i < this.items.length; i++) 
+			str += this.items[i] +" "; 
+		return str; 
+	} 
+} 
+
+
+
 
 
 // Stack class 
