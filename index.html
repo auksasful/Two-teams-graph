@@ -12,10 +12,15 @@
 </head>
 
 <body>
-    <div id="canvas-container">
-        <div id="cy"></div>
+	<h3>Enter graph vertices</h3>
+	<input title="1,2;2,3;3,4" id="vertText" type="text" size="30" />
+	<button onclick="generateGraph()">Generate graph</button>
+	</br>
+	<div id="cy"></div>
         <button onclick="buttonClick(this)" class="middle">Draw a graph and click me</button>
     </div>
+    <div id="canvas-container">
+        
     <script src="index.js"></script>
 </body>
 

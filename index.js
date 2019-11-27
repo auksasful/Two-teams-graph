@@ -65,6 +65,8 @@ cy.on("taphold", function(e) {
 //remove right-clicked element (on phones 2 finger tap)
 cy.on("cxttap", "node, edge", function(e) {
     cy.remove(cy.$("#" + e.target.id()));
+	nodeCount--;
+	//console.log(nodeCount);
 });
 
 // create edge when 2 nodes are clicked
@@ -78,9 +80,22 @@ cy.on("tap", "node", function(e) { createEdge(e); });
     function buttonClick(button) {
 		
 		
-		//console.log(getAdjacencyStructure());
-		alert("Jungiosios komponentės: " + countComponents(nodeCount, getAdjacencyStructure()));
+		let compCount = countComponents(nodeCount, getAdjacencyStructure());
 		
+		
+		if(compCount !== 0 && compCount <= 2){
+			if((nodeCount % 2) == 0){
+				
+				
+			}
+			else{
+				alert("Dviejų komandų sudaryti negalima: nelyginis viršūnių skaičius");
+			}
+			
+		}
+		else{	
+			alert("Dviejų komandų sudaryti negalima: netinkamas komponenčių skaičius");
+		}
 		
         /*if (state) {
             state = false;
@@ -123,28 +138,66 @@ function checkConnectivity(){
 
 
 	let counterComponents;
+	let counterComp1Vertices;
+	let counterComp2Vertices;
+	let currentComp;
+	let vertices;
+	let componentsCounter = new Array();
+	let touched;
+	
     function countComponents(n, edges) {
         counterComponents = n;
+		counterComp1Vertices = 0;
+		counterComp2Vertices = 0;
+		vertices = 0;
+		currentComp = 1;
+		touched = new Array(n).fill(0)
+		
         let root = new Array(n);
         for (i = 0; i < n; ++i) root[i] = i;
 		edges.forEach(function(edge){
-			union(root, edge[0], edge[1]);
+			if(edge[0] != undefined && edge[1] != undefined){
+				//vertices++;
+				console.log("source: " + edge[0] + " dst: " +  edge[1]);
+				union(root, edge[0], edge[1]);
+			}
+			
 		});
 		
         return counterComponents;
     }
 
     function find(root, i) {
-        if (root[i] == i) return i;
+		touched[i] = 1;
+        if (root[i] == i){ 
+		return i;
+		}
+		console.log("extra search");
         return find(root, root[i]);
     }
 
     function union(root, source, dst) {
+		//console.log("source: " + source + " dst: " + dst);
+		touched[root] = 1;
+		touched[source] = 1;
+		touched[dst] = 1;
         let srcRoot = find(root, source);
         let dstRoot = find(root, dst);
+		
+		//vertices /= 2;
+		
         if (srcRoot != dstRoot) {
+			//vertices += 2
+			console.log("component found");
+			vertices = touched.reduce(function(a, b) { return a + b; }, 0);
             root[srcRoot] = dstRoot;
             --counterComponents;
+			if(currentComp === 1)
+				counterComp1Vertices = vertices;
+			if(currentComp === 2)
+				counterComp2Vertices = vertices;// - counterComp1Vertices;
+			currentComp++;
+			//vertices = 0;
         }
     }
 
@@ -239,15 +292,30 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
     for (let i = 0; i < nodeCount; i++) {
         let adjacentNodes = [];
         cy.$id(i + 1).neighbourhood(`edge[source="${i+1}"]`).forEach(
+			
             n => {
+				console.log(n);
 				//console.log("adj node" + n.target().id());
-				if(n.source().id().length > 0 && n.target().id().length > 0){
+				//if(n.source().id().length > 0 && n.target().id().length > 0){
 					adjacentNodes.push(n.source().id());
 					adjacentNodes.push(n.target().id()); //adjacent node
-				}
+				//}
             }
         );
-        adjacencyNodes.push(adjacentNodes);
+		if(adjacentNodes.length <= 2){
+			adjacencyNodes.push(adjacentNodes);
+		}
+		else{
+			var j,k,temparray,chunk = 2;
+			for (j=0,k=adjacentNodes.length; j<k; j+=chunk) {
+				temparray = adjacentNodes.slice(j,j+chunk);
+				// do whatever
+				adjacencyNodes.push(temparray);
+				console.log("TEMP: " + temparray);
+			
+			}
+			
+		}
     }
     return adjacencyNodes;
 }
@@ -275,6 +343,82 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
         });
         previous = null;
     }
+	
+	
+	
+    function createEdge(startID, endID) {
+
+        /*do { //input edge weight
+            var weight = parseInt(window.prompt("Enter the weight for this edge", "1"), 10);
+        } while (isNaN(weight));*/
+
+        cy.add({ //add new edge with specified weight
+		group: 'edges',
+            data: {
+                id: startID + "e" + endID,
+                source: startID,
+                target: endID,
+                //label: weight
+            }
+        });
+        previous = null;
+    }
+	
+	function parseVertData(data){
+		let nodes = new Array();
+		let arr = data.split(/,|;/);
+		for(i = 0; i < arr.length; i+=2){
+			let valueToPush = new Array();
+			valueToPush.push(arr[i]);
+			valueToPush.push(arr[i + 1]);
+			
+			nodes.push(valueToPush);
+		}
+		return nodes;
+	}
+	
+	function generateGraph(){
+		let vertices = document.getElementById("vertText").value.split(/,|;/);
+		vertices = [...new Set(vertices)];
+		alert(vertices.length);
+		let graphData = parseVertData(document.getElementById("vertText").value);
+		alert(graphData);
+		
+		for(i = 0; i < vertices.length; i++){
+			cy.add({
+			data: { id: vertices[i] },
+			position: { x: cy.pan().x, y: cy.pan().y }
+			});
+			nodeCount++;
+		}
+		
+		for(i = 0; i < graphData.length; i++){
+			if(graphData[i][0]!== undefined && graphData[i][1] !== undefined){
+				createEdge(graphData[i][0], graphData[i][1]);
+			}
+			
+		}
+		sort('cose');
+	}
+	
+	function generatePoints(count){
+		for(i = 0; i < count; i++){
+			cy.add({
+			data: { id: ++nodeCount },
+			position: { x: cy.pan().x, y: cy.pan().y }
+			});
+		}
+		sort('breadthfirst');
+	}
+	
+	
+	function sort(layout) {
+		cy.layout({
+			name: layout,
+			animate: true,
+			zoom: 1
+		}).run();
+	}
 }
 
 
