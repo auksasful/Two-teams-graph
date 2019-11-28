@@ -25,12 +25,19 @@ var cy = cytoscape({
         },
 
         {
-            selector: ".path",
+            selector: ".team1",
             style: {
                 "background-color": "green",
                 "line-color": "green",
-                "border-width": "2",
-                "shape": "heptagon"
+                "border-width": "2"
+            }
+        },
+		{
+            selector: ".team2",
+            style: {
+                "background-color": "blue",
+                "line-color": "blue",
+                "border-width": "2"
             }
         }
     ],
@@ -79,13 +86,28 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 
     function buttonClick(button) {
 		
-		
-		let compCount = countComponents(nodeCount, getAdjacencyStructure());
+		let adjStructure = getAdjacencyStructure();
+		let firstNode = parseInt(adjStructure[0][0]);
+		let compCount = countComponents(nodeCount, adjStructure);
 		
 		
 		if(compCount !== 0 && compCount <= 2){
-			if((nodeCount % 2) == 0){
-				
+			if((nodeCount % 2) === 0){
+				firstComp = findConnectedNodes(firstNode, false);
+				secondComp = findOtherComponentNodes(firstComp);
+				firstCompLength = firstComp.length;
+				secondCompLength = nodeCount - firstCompLength;
+				if(firstCompLength === secondCompLength){
+					colorComponent(firstComp, 'team1');
+					console.log("first component should be colored!");
+					colorComponent(secondComp, 'team2');
+					console.log("second component should be colored!");
+					
+				}
+				else{
+					alert("Dviejų komandų sudaryti negalima: nevienodas viršūnių skaičius pirmoje ir antroje komponentėse");
+					
+				}
 				
 			}
 			else{
@@ -205,41 +227,193 @@ function checkConnectivity(){
     }
 
 
+	let visited = new Array(nodeCount+1);
+	
+	// Find all the reachable nodes for every element 
+// in the arr 
+function findReachableNodes(fromNode) 
+{ 
+
+  
+    // Map to store list of reachable Nodes for a 
+    // given node. 
+    reachableNodes = new Array(); 
+  
+    // Initialize component Number with 0 
+    let componentNum = 1; 
+  
+    // For each node in arr[] find reachable 
+    // Nodes 
+    //for (i = 0 ; i < n ; i++) 
+    //{ 
+        //let u = arr[i]; 
+  
+        // Visit all the nodes of the component 
+            // Store the reachable Nodes corresponding to 
+            // the node 'i' 
+            reachableNodes = BFSSearch(fromNode); 
+         
+  
+        // At this point, we have all reachable nodes 
+        // from u, print them by doing a look up in map m. 
+        console.log("Reachable Nodes from " + fromNode + " are\n"); 
+        console.log(reachableNodes);
+    //} 
+} 
+
+
+function BFSSearch(source) 
+{ 
+    // Mark all the vertices as not visited 
+    // Create a queue for BFS 
+    let q = new Queue(nodeCount);
+	
+	let edges = getAdjacencyStructure();
+  
+    q.enqueue(source); 
+  
+    // Assign Component Number 
+    visited[source] = true; 
+  
+    // Vector to store all the reachable nodes from 'src' 
+   let reachableNodes = new Array(); 
+  
+    while(!q.isEmpty()) 
+    { 
+        // Dequeue a vertex from queue 
+        let u = q.front(); 
+        q.dequeue(); 
+  
+        reachableNodes.push(u); 
+  
+        // Get all adjacent vertices of the dequeued 
+        // vertex u. If a adjacent has not been visited, 
+        // then mark it visited nd enqueue it 
+        for (i = 0; i < edges.length; i++) 
+        { 
+            if (!visited[parseInt(edges[i][1])]) 
+            { 
+                // Assign Component Number to all the 
+                // reachable nodes 
+                visited[parseInt(edges[i][1])] = true; 
+                q.enqueue(parseInt(edges[i][1])); 
+            } 
+        } 
+    } 
+    return reachableNodes; 
+} 
 	
 	
 	
-let bfsCounter = 0;
 	
-function BFS(node) {
+	
+	
+	
+	
+	
+function colorComponent(nodes, cssStyle){
+	let edges = getAdjacencyStructure();
+	
+	let q = new Queue();
+	
+	for(i = 0; i < nodes.length; i++){
+		q.enqueue(nodes[i]);
+	}
+	
+	while(!q.isEmpty()){
+		let currNode = q.dequeue();
+      edges.forEach(edge => {
+        console.log("checking edge: " + parseInt(edge[0]) + " " + parseInt(edge[1]));
+	  if(nodes.includes(parseInt(edge[0])) && nodes.includes(parseInt(edge[1]))){
+			cy.$id(parseInt(edge[0])).addClass(cssStyle);
+			cy.$id(parseInt(edge[1])).addClass(cssStyle);
+			cy.$id(parseInt(edge[0])).neighborhood('edge[target="' + (parseInt(edge[1])) + '"]')
+			.forEach(e => e.addClass(cssStyle));
+	  }
+         
+      });
+		
+	}
+}	
+	
+
+
+
+
+function findOtherComponentNodes(firstComponentNodes){
+	let otherComponentNodes = new Array();
+	for(i = 1; i <= nodeCount; i++){
+		if(!firstComponentNodes.includes(i)){
+			otherComponentNodes.push(i);
+		}
+	}
+	return otherComponentNodes;
+}	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+function BFS(node, recursiveCall) {
+	let bfsCounter = 0;
+let connectedNodes = new Array();
 	bfsCounter = 0;
+	if(!recursiveCall){
+		connectedNodes = new Array();
+		connectedNodes.push(node);
+		
+	}
 	let edges = getAdjacencyStructure();
 	console.log("edges count: " + edges.length);
    // Create a Queue and add our initial node in it
-   let q = new Queue(nodeCount);
+   let q = new Queue();
    let explored = new Set();
-   q.enqueue(node);
+   for(i = 0; i < edges.length; i++){
+	q.enqueue(edges[i]);
+   }
 
    // Mark the first node as explored explored.
    explored.add(node);
    if(edges.length === 1)
-	bfsCounter+=2;
+	bfsCounter++;
    // We'll continue till our queue gets empty
    while (!q.isEmpty()) {
       let t = q.dequeue();
 
       // Log every element that comes out of the Queue
       console.log(t);
+	  if(edges.length < nodeCount)
+		  bfsCounter++;
 	  
-
+	  console.log("checking edge: " + parseInt(t[0]) + " " + parseInt(t[1]));
+	  if(connectedNodes.includes(parseInt(t[0])) && !connectedNodes.includes(parseInt(t[1]))){
+		  connectedNodes.push(parseInt(t[1]));
+		  BFS(parseInt(edges[t][1]), true);
+	  }
+	  if(!connectedNodes.includes(parseInt(t)) && connectedNodes.includes(parseInt(edges[t][1])))
+	  {
+		  connectedNodes.push(parseInt(edges[t][0]));
+		  BFS(parseInt(edges[t][0]), true);
+			
+	  }
+	  console.log("connected nodes: " + connectedNodes);
       // 1. In the edges object, we search for nodes this node is directly connected to.
       // 2. We filter out the nodes that have already been explored.
       // 3. Then we mark each unexplored node as explored and add it to the queue.
 	  if(edges[t] != undefined){
+		  if(edges.length >= nodeCount)
 		  bfsCounter++;
 		  edges[t]
 		  .filter(n => !explored.has(n))
 		  .forEach(n => {
-			 explored.add(n);
+			 explored.add(t);
+			 console.log("explored length: " + explored.size);
 			 q.enqueue(n);
 		  });
 	  }
@@ -311,6 +485,67 @@ function DFS(node, visited) {
 	  i++;
    }
 }
+
+
+
+
+
+
+
+
+
+
+let connectedNodes = new Array();
+function findConnectedNodes(startNode, recursiveCall) {
+	let edges = getAdjacencyStructure();
+	if(!recursiveCall){
+		connectedNodes = new Array();
+		connectedNodes.push(startNode);
+	}
+   // Stores the reference to previous nodes
+	let q = new Queue(edges.length * edges.length);
+
+   // Set distances to all nodes to be infinite except startNode
+   //distances[startNode] = 0;
+   q.enqueue(startNode);
+
+   while (!q.isEmpty()) {
+      let currNode = q.dequeue();
+      edges.forEach(edge => {
+        console.log("checking edge: " + parseInt(edge[0]) + " " + parseInt(edge[1]));
+	  if(connectedNodes.includes(parseInt(edge[0])) && !connectedNodes.includes(parseInt(edge[1]))){
+		  connectedNodes.push(parseInt(edge[1]));
+		  findConnectedNodes(parseInt(edge[1]), true);
+	  }
+	  if(!connectedNodes.includes(parseInt(edge[0])) && connectedNodes.includes(parseInt(edge[1])))
+	  {
+		  connectedNodes.push(parseInt(edge[0]));
+		  findConnectedNodes(parseInt(edge[0]), true);
+	  }
+         
+      });
+   }
+   console.log(connectedNodes);
+   return connectedNodes;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
 function DFSUtil(v, visited) 
 { 
@@ -577,4 +812,8 @@ class Stack {
 			str += this.items[i] + " "; 
 		return str; 
 	}  
-} 
+}
+
+
+
+
