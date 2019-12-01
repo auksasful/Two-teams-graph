@@ -51,6 +51,7 @@ var cy = cytoscape({
 
 //node add
 var nodeCount = 0; //sequentially
+let team1Nodes = new Array();
 //adds node when double-clicked
 $("#cy").dblclick(function(e) {
     let offset = cy.pan();
@@ -93,20 +94,30 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 		
 		if(compCount !== 0 && compCount <= 2){
 			if((nodeCount % 2) === 0){
-				firstComp = findConnectedNodes(firstNode, false);
-				secondComp = findOtherComponentNodes(firstComp);
-				firstCompLength = firstComp.length;
-				secondCompLength = nodeCount - firstCompLength;
-				if(firstCompLength === secondCompLength){
-					colorComponent(firstComp, 'team1');
-					console.log("first component should be colored!");
-					colorComponent(secondComp, 'team2');
-					console.log("second component should be colored!");
-					
+				if(compCount === 2){
+					firstComp = findConnectedNodes(firstNode, false);
+					secondComp = findOtherComponentNodes(firstComp);
+					firstCompLength = firstComp.length;
+					secondCompLength = nodeCount - firstCompLength;
+					if(firstCompLength === secondCompLength){
+						colorComponent(firstComp, 'team1');
+						console.log("first component should be colored!");
+						colorComponent(secondComp, 'team2');
+						console.log("second component should be colored!");
+						
+					}
+					else{
+						alert("Dviejų komandų sudaryti negalima: nevienodas viršūnių skaičius pirmoje ir antroje komponentėse");
+						
+					}
 				}
 				else{
-					alert("Dviejų komandų sudaryti negalima: nevienodas viršūnių skaičius pirmoje ir antroje komponentėse");
-					
+					//let neighborings = findAllNeighborNodes();
+					//findTeams(neighborings);
+					//var ks = cy.elements().kargerStein();
+					//ks.cut.select();
+					//console.log(ks);
+					colorComponent(team1Nodes, 'team1');
 				}
 				
 			}
@@ -167,6 +178,9 @@ function checkConnectivity(){
 	let componentsCounter = new Array();
 	let touched;
 	
+	//let team1Nodes = new Array();
+	let counterinator = 0;
+	
     function countComponents(n, edges) {
         counterComponents = n;
 		counterComp1Vertices = 0;
@@ -212,6 +226,21 @@ function checkConnectivity(){
 		//vertices /= 2;
 		
         if (srcRoot != dstRoot) {
+			counterinator++;
+			/*if(counterinator <= (nodeCount / 2)){
+				if(counterinator === 1){
+					team1Nodes.push(parseInt(dst));
+				}
+				else{
+					if(!team1Nodes.includes(parseInt(source))){
+						team1Nodes.push(parseInt(source));
+					}
+					else{
+						
+						team1Nodes.push(parseInt(dst));
+					}
+				}
+			}*/
 			//vertices += 2
 			console.log("component found");
 			vertices = touched.reduce(function(a, b) { return a + b; }, 0);
@@ -532,9 +561,203 @@ function findConnectedNodes(startNode, recursiveCall) {
 
 
 
+function findAllNeighborNodes(){
+	let neighborNodes = new Array(nodeCount);
+	let edges = getAdjacencyStructure();
+	
+   // Stores the reference to previous nodes
+	//let q = new Queue(nodeCount * nodeCount);
+
+   // Set distances to all nodes to be infinite except startNode
+   //distances[startNode] = 0;
+   for(i = 1; i <= nodeCount; i++){
+	   let q = new Queue(nodeCount);
+	   q.enqueue(i);
+		neighborNodes[i - 1] = new Array();
+	   while (!q.isEmpty()) {
+		  let currNode = q.dequeue();
+		  edges.forEach(edge => {
+			console.log("checking edge: " + parseInt(edge[0]) + " " + parseInt(edge[1]));
+		  if(i == parseInt(edge[0])){
+			  neighborNodes[i - 1].push(parseInt(edge[1]));
+		  }
+		  if(i == parseInt(edge[1]))
+		  {
+			   neighborNodes[i - 1].push(parseInt(edge[0]));
+		  }
+			 
+		  });
+	   }
+   }
+   console.log(neighborNodes);
+   return neighborNodes;
+	
+	
+}
 
 
+//let team1Nodes = new Array();
+let team2Nodes = new Array();
 
+function findTeams(nodesNeighbors){
+	let edges = getAdjacencyStructure();
+	let usedNodes = new Array();
+	let neighborCounts;
+   // Stores the reference to previous nodes
+	//let q = new Queue(nodeCount * nodeCount);
+	let newNeighbors = nodesNeighbors;4
+	let tmpArray = new Array();
+   // Set distances to all nodes to be infinite except startNode
+   //distances[startNode] = 0;
+   for(i = 1; i <= nodeCount / 2; i++){
+	 
+	   if(i === 1){
+		   team1Nodes.push(i);
+		   usedNodes.push(i);
+		   
+	   }
+	   else{
+		   newNeighbors = updateNeighborhood(newNeighbors, team2Nodes);
+		   neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
+		   
+		   let selectedTheNode = false
+		   let selectableNeighbors = newNeighbors;
+		   let nNeighborCounts = neighborCounts;
+		   
+		   let countinger = 0;
+		   
+		   while(!selectedTheNode){
+			   let nodeToPush = getMostSimilarNode(neighborCounts, team2Nodes[i - 1]);
+			   console.log(team2Nodes[i - 1] + " most similar node: " + nodeToPush);
+			   for(j = 0; j < team1Nodes.length; j++){
+				   tmpArray = team1Nodes[j];
+				   if(tmpArray.includes(nodeToPush)){
+					   selectedTheNode = true;
+				   }
+			   }
+			   
+			   if(!selectedTheNode){
+					selectableNeighbors.splice(j, 1);
+					nNeighborCounts = getNeighborCounts(selectableNeighbors, usedNodes);
+			   }
+			   
+			   countinger++;
+			    console.log("n1: " + selectableNeighbors);
+				if(countinger === 15){
+					selectedTheNode = true;
+					
+				}
+			   
+		   }
+		   
+		   team1Nodes.push(nodeToPush);
+			usedNodes.push(nodeToPush);
+			colorComponent(team1Nodes, 'team1');
+			   
+		   }
+	   
+	   
+	   
+	   
+		newNeighbors = updateNeighborhood(newNeighbors, team1Nodes);
+		neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
+	
+		if(i === 1){
+			let nodeToPush = getMostSimilarNode(neighborCounts, team1Nodes[i - 1]);
+			team2Nodes.push(nodeToPush);
+			usedNodes.push(nodeToPush);
+		}
+		else{
+			newNeighbors = updateNeighborhood(newNeighbors, team1Nodes);
+		   neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
+		   
+		   let selectedTheNode = false
+		   let selectableNeighbors = newNeighbors;
+		   let nNeighborCounts = neighborCounts;
+		   let countinger = 0;
+		   while(!selectedTheNode){
+			   let nodeToPush = getMostSimilarNode(neighborCounts, team1Nodes[i - 1]);
+			    console.log(team2Nodes[i - 1] + " most similar node: " + nodeToPush);
+			   for(j = 0; j < team2Nodes.length; j++){
+				   tmpArray = team2Nodes[j]
+				   if(tmpArray.includes(nodeToPush)){
+					   selectedTheNode = true;
+				   }
+			   }
+			   console.log(selectableNeighbors);
+			   if(!selectedTheNode){
+					selectableNeighbors.splice(j, 1);
+					nNeighborCounts = getNeighborCounts(selectableNeighbors, usedNodes);
+			   }
+			   countinger++;
+			    console.log("n2: " + selectableNeighbors);
+				if(countinger === 15){
+					selectedTheNode = true;
+					
+				}
+		   }
+		   
+			team2Nodes.push(nodeToPush);
+			usedNodes.push(nodeToPush);
+			colorComponent(team2Nodes, 'team2');
+			
+		}
+		
+
+   }
+   console.log(neighborNodes);
+   return neighborNodes;
+	
+	
+}
+
+
+function updateNeighborhood(neighborhood, otherTeam){
+	let updatedN = neighborhood;
+	for(i = 1; i <= neighborhood.length; i++){
+		for(j = 1; j <= neighborhood[i - 1].length; j++){
+			if(otherTeam.includes(neighborhood[i - 1][j - 1])){
+				updatedN[i-1].splice(j-1, 1);
+				
+			}
+			
+		}
+		
+	}
+	return updatedN;
+}
+
+
+function getNeighborCounts(neighbors, usedNodes){
+	
+	let neighborCounts = new Array();
+	   for(j = 1; j <= neighbors.length; j++){
+		   if(j != i && !usedNodes.includes(j)){
+			   neighborCounts.push(neighbors[j - 1].length);
+		   }
+		   else{
+			   neighborCounts.push(0);
+			   
+		   }
+		   
+	   }
+	   return neighborCounts;
+}
+
+
+function getMostSimilarNode(counts, cmp){
+	let minNum = Infinity;
+	let similarNode = 1;
+	for(i = 0; i < counts; i++){
+		if(Math.abs(cmp - counts[i]) < minNum){
+			similarNode = i + 1;
+			
+		}
+		
+	}
+	return similarNode;
+	
+}
 
 
 
