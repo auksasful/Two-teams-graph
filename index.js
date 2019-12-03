@@ -37,7 +37,8 @@ var cy = cytoscape({
             style: {
                 "background-color": "blue",
                 "line-color": "blue",
-                "border-width": "2"
+                "border-width": "2",
+				"shape": "heptagon"
             }
         }
     ],
@@ -52,6 +53,7 @@ var cy = cytoscape({
 //node add
 var nodeCount = 0; //sequentially
 let team1Nodes = new Array();
+let team2Nodes = new Array();
 //adds node when double-clicked
 $("#cy").dblclick(function(e) {
     let offset = cy.pan();
@@ -87,6 +89,7 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 
     function buttonClick(button) {
 		
+		if(nodeCount > 1){
 		let adjStructure = getAdjacencyStructure();
 		let firstNode = parseInt(adjStructure[0][0]);
 		let compCount = countComponents(nodeCount, adjStructure);
@@ -94,6 +97,7 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 		
 		if(compCount !== 0 && compCount <= 2){
 			if((nodeCount % 2) === 0){
+				
 				if(compCount === 2){
 					firstComp = findConnectedNodes(firstNode, false);
 					secondComp = findOtherComponentNodes(firstComp);
@@ -112,12 +116,11 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 					}
 				}
 				else{
-					//let neighborings = findAllNeighborNodes();
-					//findTeams(neighborings);
-					//var ks = cy.elements().kargerStein();
-					//ks.cut.select();
-					//console.log(ks);
+
+					team1Nodes = getFirstTeam();
+					team2Nodes = getSecondTeam(team1Nodes);
 					colorComponent(team1Nodes, 'team1');
+					colorComponent(team2Nodes, 'team2');
 				}
 				
 			}
@@ -129,34 +132,12 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 		else{	
 			alert("Dviejų komandų sudaryti negalima: netinkamas komponenčių skaičius");
 		}
+		}
+		else{
+			alert("Dviejų komandų sudaryti negalima: yra tik viena viršūnė");
+		}
 		
-        /*if (state) {
-            state = false;
-            $(button).text("Click me");
-            cy.$("node, edge").removeClass("path");
-            cy.removeListener("tap", "node");
-            cy.on("tap", "node", function(e) { createEdge(e); });
-            return;
-        }
-
-        $(button).text("Select START node");
-
-        cy.removeListener("tap", "node");
-
-        cy.on("tap", "node", function(node) {
-            node.target.addClass("path");
-
-            if (start == null) {
-                start = node.target.id();
-                $(button).text("Select END node");
-            } else {
-				alert(numberOfConnectedComponents());
-               // calculatePath(start, node.target.id());
-                start = null;
-                state = true;
-                $(button).text("Again");
-            }
-        });*/
+        
 
     }
 } //--
@@ -358,6 +339,16 @@ function colorComponent(nodes, cssStyle){
 			cy.$id(parseInt(edge[1])).addClass(cssStyle);
 			cy.$id(parseInt(edge[0])).neighborhood('edge[target="' + (parseInt(edge[1])) + '"]')
 			.forEach(e => e.addClass(cssStyle));
+	  }
+	  else if(nodes.includes(parseInt(edge[0])) && !nodes.includes(parseInt(edge[1]))){
+		  if(nodeCount === 2){
+			  cy.$id(parseInt(edge[0])).addClass(cssStyle);
+		  }
+	  }
+	  else if(nodes.includes(parseInt(edge[1])) && !nodes.includes(parseInt(edge[0]))){
+		  if(nodeCount === 2){
+			  cy.$id(parseInt(edge[1])).addClass(cssStyle);
+		  }
 	  }
          
       });
@@ -597,7 +588,7 @@ function findAllNeighborNodes(){
 
 
 //let team1Nodes = new Array();
-let team2Nodes = new Array();
+//let team2Nodes = new Array();
 
 function findTeams(nodesNeighbors){
 	let edges = getAdjacencyStructure();
@@ -764,6 +755,257 @@ function getMostSimilarNode(counts, cmp){
 
 
 
+function adjToTree(){
+	
+	let edges = getAdjacencyStructure();
+	let treeEdges = new Array();
+	let checkedNodes = new Array();
+	for(i = 0; i < edges.length; i++){
+		if(!checkedNodes.includes(parseInt(edges[i][0])) &&
+		!checkedNodes.includes(parseInt(edges[i][1]))){
+			checkedNodes.push(parseInt(edges[i][0]));
+			checkedNodes.push(parseInt(edges[i][1]));
+			treeEdges.push(edges[i]);
+		}
+		else if(checkedNodes.includes(parseInt(edges[i][0])) &&
+		!checkedNodes.includes(parseInt(edges[i][1]))){
+			
+			checkedNodes.push(parseInt(edges[i][1]));
+			treeEdges.push(edges[i]);
+		}
+		
+		else if(!checkedNodes.includes(parseInt(edges[i][0])) &&
+		checkedNodes.includes(parseInt(edges[i][1]))){
+			
+			checkedNodes.push(parseInt(edges[i][0]));
+			treeEdges.push(edges[i]);
+		}
+		
+	}
+	
+	return treeEdges;
+	
+}
+
+
+
+function getNeighborsEdges(tree, node){
+	let neighborsEdges = new Array();
+	
+	for(i = 0; i < tree.length; i++){
+		if(node === parseInt(tree[i][0]) ||
+		node === parseInt(tree[i][1])){
+			neighborsEdges.push(tree[i]);
+		}
+	}
+	
+	return neighborsEdges;
+	
+}
+
+
+function getDepth(tree, vNod, node, depth){
+	
+	
+	let nod = node;
+	let nEdgesLength = getNeighborsEdges(tree, nod).length; 
+	console.log("tree " + tree);
+	console.log("node " + node);
+	for(j = 0; j < tree.length; j++){
+		if(parseInt(tree[j][0]) === node && !vNod.includes(parseInt(tree[j][1]))){
+			depth += nEdgesLength;
+			vNod.push(parseInt(tree[j][1]));
+			return getDepth(tree, vNod, parseInt(tree[j][1]), depth);
+		}
+		else if(parseInt(tree[j][1]) === node && !vNod.includes(parseInt(tree[j][0]))){
+			depth += nEdgesLength;
+			vNod.push(parseInt(tree[j][0]));
+			return getDepth(tree, vNod, parseInt(tree[j][0]), depth);
+		}
+	}
+	return depth;
+}
+
+function getMinDepthNodeInTree(tree, visitedNodes, node){
+	let depth;
+	let minDepth = Infinity;
+	let minDepthNode = null;
+	let visitedFromNode = new Array();
+	let neighEdges = getNeighborsEdges(tree, node);
+	let vNodes = visitedNodes;
+	let oldInd;
+	console.log("num neigh edges: " + neighEdges.length);
+	for(i = 0; i < neighEdges.length; i++){
+		oldInd = i;
+		let newTree = new Array();
+		tree.forEach(function(e){
+			newTree.push(e);
+		});
+		
+		depth = 0;
+		console.log("depth: " + depth + " i: " + i);
+		if(parseInt(neighEdges[i][0]) === node &&
+		!vNodes.includes(parseInt(neighEdges[i][1]))){
+			depth++;
+			vNodes.push(parseInt(neighEdges[i][1]));
+			
+			
+			console.log("neighEdges before: " + neighEdges);
+			depth = getDepth(newTree, vNodes, parseInt(neighEdges[i][1]), depth);
+			console.log("neighEdges after: " + neighEdges);
+			i = oldInd;
+			if(depth < minDepth){
+				minDepth = depth;
+				minDepthNode = parseInt(neighEdges[i][1]);
+				
+			}
+		console.log("depth: " + depth + " i: " + i);
+		}
+		else if(parseInt(neighEdges[i][1]) === node &&
+		!vNodes.includes(parseInt(neighEdges[i][0]))){
+			depth++;
+			vNodes.push(parseInt(neighEdges[i][0]));
+			console.log("neighEdges before: " + neighEdges);
+			depth = getDepth(newTree, vNodes, parseInt(neighEdges[i][0]), depth);
+			console.log("neighEdges after: " + neighEdges);
+			i = oldInd;
+			if(depth < minDepth){
+				console.log(neighEdges);
+				minDepth = depth;
+				minDepthNode = parseInt(neighEdges[i][0]);
+				
+			}
+		console.log("depth: " + depth + " i: " + i);
+		}
+		console.log("depth: " + depth + " i: " + i);
+		
+		
+	}
+	vNodes = null;
+	visitedNodes = null;
+	return minDepthNode;
+}
+
+
+function getMinNeighborNode(tree, allVisitedNodes){
+	let minNeighborNode = 0;
+	let neighborCount = 0;
+	let minNeighborCount = Infinity;
+	for(i = 1; i <= nodeCount; i++){
+		neighborCount = 0;
+		for(j = 0; j < tree.length; j++){
+			if(i === parseInt(tree[j][0]) && !allVisitedNodes.includes(tree[j][0])){
+				neighborCount++;
+			}
+			else if(i === parseInt(tree[j][1]) && !allVisitedNodes.includes(tree[j][1])){
+				neighborCount++;
+			}
+			
+		}
+		if(neighborCount < minNeighborCount){
+			minNeighborCount = neighborCount;
+			minNeighborNode = i;
+			console.log("neighbor count " + neighborCount);
+		}
+	}
+	
+	return minNeighborNode;
+}
+
+
+
+
+function getFirstTeam(){
+	let teamNodes0 = new Array();
+	let tree = adjToTree();
+	let membersLeft = nodeCount / 2;
+	let membersCount = membersLeft;
+	let lastGoodNode = 
+	teamNodes0.push(getMinNeighborNode(tree, teamNodes0));
+	let nCount = getNeighborsEdges(tree,teamNodes0[0]);
+	console.log("teamNodes " + teamNodes0);
+	membersLeft--;
+	let cnt = 1;
+	for(i = 0; i < membersLeft; i++){
+		let pastI = i;
+		console.log(tree.length);
+		console.log("teamNodes 0 " + teamNodes0);
+		let useddNodes = new Array();
+		teamNodes0.forEach(function(e){
+			useddNodes.push(e);
+		});
+		let lastNode = teamNodes0[i];
+		console.log("lastNode: " + lastNode + " i: " + i);
+		console.log("teamNodes before nods " + teamNodes0);
+		let nods = getMinDepthNodeInTree(tree, useddNodes, lastNode);
+		if(nods !== null){
+			console.log("teamNodes after nods " + teamNodes0);
+			console.log("useddNodes " + useddNodes);
+			teamNodes0.push(nods);
+		}
+		else{
+			let useddNodes = new Array();
+		teamNodes0.forEach(function(e){
+			useddNodes.push(e);
+		});
+			let lastNode = teamNodes0[pastI - 1];
+			teamNodes0.push(teamNodes0[pastI - 1]);
+			let nods = getMinDepthNodeInTree(tree, useddNodes, lastNode);
+			teamNodes0.push(nods);
+			console.log("nods was null");
+		}
+		
+		console.log("nods: " + nods);
+		console.log("teamNodes 1 " + teamNodes0);
+		i = pastI;
+	}
+	return teamNodes0;
+	
+}
+
+
+
+function getSecondTeam(firstTeamNodes){
+	let secondTeam = new Array();
+	for(i = 1; i <= nodeCount; i++){
+		if(!firstTeamNodes.includes(i)){
+			secondTeam.push(i);
+		}
+	}
+	return secondTeam;
+}
+
+
+function checkTeamValidity(team){
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -886,7 +1128,7 @@ function getAdjacencyStructure() { //to use arrays instead of what is given
 		vertices = [...new Set(vertices)];
 		alert(vertices.length);
 		let graphData = parseVertData(document.getElementById("vertText").value);
-		alert(graphData);
+		//alert(graphData);
 		
 		for(i = 0; i < vertices.length; i++){
 			cy.add({
