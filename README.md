@@ -2,6 +2,7 @@
 ## Two teams graph: discrete mathemathics project
 
 ### USER MANUAL:
+[Try the project here](https://auksasful.github.io/Two-teams-graph/index.html)
 Enter adjacent structure of edges into the input field separating nodes of edges by commas and edges by semi-columns.
 For example:\
 1,2;1,5;1,3;1,4;2,3;3,5;5,6;6,7;7,8;8,9;9,10\
