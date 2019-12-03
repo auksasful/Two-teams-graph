@@ -105,10 +105,7 @@ cy.on("tap", "node", function(e) { createEdge(e); });
 					secondCompLength = nodeCount - firstCompLength;
 					if(firstCompLength === secondCompLength){
 						colorComponent(firstComp, 'team1');
-						console.log("first component should be colored!");
-						colorComponent(secondComp, 'team2');
-						console.log("second component should be colored!");
-						
+						colorComponent(secondComp, 'team2');						
 					}
 					else{
 						alert("Dviejų komandų sudaryti negalima: nevienodas viršūnių skaičius pirmoje ir antroje komponentėse");
@@ -142,11 +139,6 @@ cy.on("tap", "node", function(e) { createEdge(e); });
     }
 } //--
 
-
-function checkConnectivity(){
-	
-	
-}
 
 
 
@@ -208,22 +200,8 @@ function checkConnectivity(){
 		
         if (srcRoot != dstRoot) {
 			counterinator++;
-			/*if(counterinator <= (nodeCount / 2)){
-				if(counterinator === 1){
-					team1Nodes.push(parseInt(dst));
-				}
-				else{
-					if(!team1Nodes.includes(parseInt(source))){
-						team1Nodes.push(parseInt(source));
-					}
-					else{
-						
-						team1Nodes.push(parseInt(dst));
-					}
-				}
-			}*/
-			//vertices += 2
-			console.log("component found");
+			
+
 			vertices = touched.reduce(function(a, b) { return a + b; }, 0);
             root[srcRoot] = dstRoot;
             --counterComponents;
@@ -232,93 +210,14 @@ function checkConnectivity(){
 			if(currentComp === 2)
 				counterComp2Vertices = vertices;// - counterComp1Vertices;
 			currentComp++;
-			//vertices = 0;
         }
     }
 
 
-	let visited = new Array(nodeCount+1);
 	
-	// Find all the reachable nodes for every element 
-// in the arr 
-function findReachableNodes(fromNode) 
-{ 
-
-  
-    // Map to store list of reachable Nodes for a 
-    // given node. 
-    reachableNodes = new Array(); 
-  
-    // Initialize component Number with 0 
-    let componentNum = 1; 
-  
-    // For each node in arr[] find reachable 
-    // Nodes 
-    //for (i = 0 ; i < n ; i++) 
-    //{ 
-        //let u = arr[i]; 
-  
-        // Visit all the nodes of the component 
-            // Store the reachable Nodes corresponding to 
-            // the node 'i' 
-            reachableNodes = BFSSearch(fromNode); 
-         
-  
-        // At this point, we have all reachable nodes 
-        // from u, print them by doing a look up in map m. 
-        console.log("Reachable Nodes from " + fromNode + " are\n"); 
-        console.log(reachableNodes);
-    //} 
-} 
+	
 
 
-function BFSSearch(source) 
-{ 
-    // Mark all the vertices as not visited 
-    // Create a queue for BFS 
-    let q = new Queue(nodeCount);
-	
-	let edges = getAdjacencyStructure();
-  
-    q.enqueue(source); 
-  
-    // Assign Component Number 
-    visited[source] = true; 
-  
-    // Vector to store all the reachable nodes from 'src' 
-   let reachableNodes = new Array(); 
-  
-    while(!q.isEmpty()) 
-    { 
-        // Dequeue a vertex from queue 
-        let u = q.front(); 
-        q.dequeue(); 
-  
-        reachableNodes.push(u); 
-  
-        // Get all adjacent vertices of the dequeued 
-        // vertex u. If a adjacent has not been visited, 
-        // then mark it visited nd enqueue it 
-        for (i = 0; i < edges.length; i++) 
-        { 
-            if (!visited[parseInt(edges[i][1])]) 
-            { 
-                // Assign Component Number to all the 
-                // reachable nodes 
-                visited[parseInt(edges[i][1])] = true; 
-                q.enqueue(parseInt(edges[i][1])); 
-            } 
-        } 
-    } 
-    return reachableNodes; 
-} 
-	
-	
-	
-	
-	
-	
-	
 	
 	
 function colorComponent(nodes, cssStyle){
@@ -370,146 +269,6 @@ function findOtherComponentNodes(firstComponentNodes){
 	return otherComponentNodes;
 }	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-function BFS(node, recursiveCall) {
-	let bfsCounter = 0;
-let connectedNodes = new Array();
-	bfsCounter = 0;
-	if(!recursiveCall){
-		connectedNodes = new Array();
-		connectedNodes.push(node);
-		
-	}
-	let edges = getAdjacencyStructure();
-	console.log("edges count: " + edges.length);
-   // Create a Queue and add our initial node in it
-   let q = new Queue();
-   let explored = new Set();
-   for(i = 0; i < edges.length; i++){
-	q.enqueue(edges[i]);
-   }
-
-   // Mark the first node as explored explored.
-   explored.add(node);
-   if(edges.length === 1)
-	bfsCounter++;
-   // We'll continue till our queue gets empty
-   while (!q.isEmpty()) {
-      let t = q.dequeue();
-
-      // Log every element that comes out of the Queue
-      console.log(t);
-	  if(edges.length < nodeCount)
-		  bfsCounter++;
-	  
-	  console.log("checking edge: " + parseInt(t[0]) + " " + parseInt(t[1]));
-	  if(connectedNodes.includes(parseInt(t[0])) && !connectedNodes.includes(parseInt(t[1]))){
-		  connectedNodes.push(parseInt(t[1]));
-		  BFS(parseInt(edges[t][1]), true);
-	  }
-	  if(!connectedNodes.includes(parseInt(t)) && connectedNodes.includes(parseInt(edges[t][1])))
-	  {
-		  connectedNodes.push(parseInt(edges[t][0]));
-		  BFS(parseInt(edges[t][0]), true);
-			
-	  }
-	  console.log("connected nodes: " + connectedNodes);
-      // 1. In the edges object, we search for nodes this node is directly connected to.
-      // 2. We filter out the nodes that have already been explored.
-      // 3. Then we mark each unexplored node as explored and add it to the queue.
-	  if(edges[t] != undefined){
-		  if(edges.length >= nodeCount)
-		  bfsCounter++;
-		  edges[t]
-		  .filter(n => !explored.has(n))
-		  .forEach(n => {
-			 explored.add(t);
-			 console.log("explored length: " + explored.size);
-			 q.enqueue(n);
-		  });
-	  }
-   }
-}
-	
-
-
-
-function numberOfConnectedComponents() 
-{ 
-	let nodes = getAdjacencyStructure();
-    // Mark all the vertices as not visited 
-    let visited = Array(nodes.length).fill(false);
-  
-    // To store the number of connected components 
-    let count = 0; 
-    for (v = 0; v < nodes.length; v++) 
-        visited[v] = false; 
-  
-    for (v = 0; v < nodes.length; v++) { 
-        if (visited[v] == false) { 
-		console.log("visit" + count);
-            DFS(v, visited); 
-            count += 1; 
-        } 
-    } 
-  
-    return count; 
-} 
-  
-  
-  
-  
-  
-  
-function DFS(node, visited) {
-   // Create a Stack and add our initial node in it
-   let nodes = getAdjacencyStructure();
-   let s = new Stack(nodes.length);
-   let explored = new Set();
-   s.push(node);
-   
-   visited[node] = true;
-
-   // Mark the first node as explored
-   explored.add(node);
-
-   let i = 0;
-   // We'll continue till our Stack gets empty
-   while (!s.isEmpty()) {
-      let t = s.pop();
-
-      // Log every element that comes out of the Stack
-      console.log(t);
-
-      // 1. In the edges object, we search for nodes this node is directly connected to.
-      // 2. We filter out the nodes that have already been explored.
-      // 3. Then we mark each unexplored node as explored and push it to the Stack.
-	  if(nodes[t] !== undefined && !visited[i]){
-		  nodes[t]
-		  .filter(n => !explored.has(n))
-		  .forEach(n => {
-			 explored.add(n);
-			 s.push(n);
-		  });
-	  }
-	  console.log(i);
-	  i++;
-   }
-}
-
-
-
-
-
 
 
 
@@ -547,207 +306,6 @@ function findConnectedNodes(startNode, recursiveCall) {
    }
    console.log(connectedNodes);
    return connectedNodes;
-}
-
-
-
-
-function findAllNeighborNodes(){
-	let neighborNodes = new Array(nodeCount);
-	let edges = getAdjacencyStructure();
-	
-   // Stores the reference to previous nodes
-	//let q = new Queue(nodeCount * nodeCount);
-
-   // Set distances to all nodes to be infinite except startNode
-   //distances[startNode] = 0;
-   for(i = 1; i <= nodeCount; i++){
-	   let q = new Queue(nodeCount);
-	   q.enqueue(i);
-		neighborNodes[i - 1] = new Array();
-	   while (!q.isEmpty()) {
-		  let currNode = q.dequeue();
-		  edges.forEach(edge => {
-			console.log("checking edge: " + parseInt(edge[0]) + " " + parseInt(edge[1]));
-		  if(i == parseInt(edge[0])){
-			  neighborNodes[i - 1].push(parseInt(edge[1]));
-		  }
-		  if(i == parseInt(edge[1]))
-		  {
-			   neighborNodes[i - 1].push(parseInt(edge[0]));
-		  }
-			 
-		  });
-	   }
-   }
-   console.log(neighborNodes);
-   return neighborNodes;
-	
-	
-}
-
-
-//let team1Nodes = new Array();
-//let team2Nodes = new Array();
-
-function findTeams(nodesNeighbors){
-	let edges = getAdjacencyStructure();
-	let usedNodes = new Array();
-	let neighborCounts;
-   // Stores the reference to previous nodes
-	//let q = new Queue(nodeCount * nodeCount);
-	let newNeighbors = nodesNeighbors;4
-	let tmpArray = new Array();
-   // Set distances to all nodes to be infinite except startNode
-   //distances[startNode] = 0;
-   for(i = 1; i <= nodeCount / 2; i++){
-	 
-	   if(i === 1){
-		   team1Nodes.push(i);
-		   usedNodes.push(i);
-		   
-	   }
-	   else{
-		   newNeighbors = updateNeighborhood(newNeighbors, team2Nodes);
-		   neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
-		   
-		   let selectedTheNode = false
-		   let selectableNeighbors = newNeighbors;
-		   let nNeighborCounts = neighborCounts;
-		   
-		   let countinger = 0;
-		   
-		   while(!selectedTheNode){
-			   let nodeToPush = getMostSimilarNode(neighborCounts, team2Nodes[i - 1]);
-			   console.log(team2Nodes[i - 1] + " most similar node: " + nodeToPush);
-			   for(j = 0; j < team1Nodes.length; j++){
-				   tmpArray = team1Nodes[j];
-				   if(tmpArray.includes(nodeToPush)){
-					   selectedTheNode = true;
-				   }
-			   }
-			   
-			   if(!selectedTheNode){
-					selectableNeighbors.splice(j, 1);
-					nNeighborCounts = getNeighborCounts(selectableNeighbors, usedNodes);
-			   }
-			   
-			   countinger++;
-			    console.log("n1: " + selectableNeighbors);
-				if(countinger === 15){
-					selectedTheNode = true;
-					
-				}
-			   
-		   }
-		   
-		   team1Nodes.push(nodeToPush);
-			usedNodes.push(nodeToPush);
-			colorComponent(team1Nodes, 'team1');
-			   
-		   }
-	   
-	   
-	   
-	   
-		newNeighbors = updateNeighborhood(newNeighbors, team1Nodes);
-		neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
-	
-		if(i === 1){
-			let nodeToPush = getMostSimilarNode(neighborCounts, team1Nodes[i - 1]);
-			team2Nodes.push(nodeToPush);
-			usedNodes.push(nodeToPush);
-		}
-		else{
-			newNeighbors = updateNeighborhood(newNeighbors, team1Nodes);
-		   neighborCounts = getNeighborCounts(newNeighbors, usedNodes);
-		   
-		   let selectedTheNode = false
-		   let selectableNeighbors = newNeighbors;
-		   let nNeighborCounts = neighborCounts;
-		   let countinger = 0;
-		   while(!selectedTheNode){
-			   let nodeToPush = getMostSimilarNode(neighborCounts, team1Nodes[i - 1]);
-			    console.log(team2Nodes[i - 1] + " most similar node: " + nodeToPush);
-			   for(j = 0; j < team2Nodes.length; j++){
-				   tmpArray = team2Nodes[j]
-				   if(tmpArray.includes(nodeToPush)){
-					   selectedTheNode = true;
-				   }
-			   }
-			   console.log(selectableNeighbors);
-			   if(!selectedTheNode){
-					selectableNeighbors.splice(j, 1);
-					nNeighborCounts = getNeighborCounts(selectableNeighbors, usedNodes);
-			   }
-			   countinger++;
-			    console.log("n2: " + selectableNeighbors);
-				if(countinger === 15){
-					selectedTheNode = true;
-					
-				}
-		   }
-		   
-			team2Nodes.push(nodeToPush);
-			usedNodes.push(nodeToPush);
-			colorComponent(team2Nodes, 'team2');
-			
-		}
-		
-
-   }
-   console.log(neighborNodes);
-   return neighborNodes;
-	
-	
-}
-
-
-function updateNeighborhood(neighborhood, otherTeam){
-	let updatedN = neighborhood;
-	for(i = 1; i <= neighborhood.length; i++){
-		for(j = 1; j <= neighborhood[i - 1].length; j++){
-			if(otherTeam.includes(neighborhood[i - 1][j - 1])){
-				updatedN[i-1].splice(j-1, 1);
-				
-			}
-			
-		}
-		
-	}
-	return updatedN;
-}
-
-
-function getNeighborCounts(neighbors, usedNodes){
-	
-	let neighborCounts = new Array();
-	   for(j = 1; j <= neighbors.length; j++){
-		   if(j != i && !usedNodes.includes(j)){
-			   neighborCounts.push(neighbors[j - 1].length);
-		   }
-		   else{
-			   neighborCounts.push(0);
-			   
-		   }
-		   
-	   }
-	   return neighborCounts;
-}
-
-
-function getMostSimilarNode(counts, cmp){
-	let minNum = Infinity;
-	let similarNode = 1;
-	for(i = 0; i < counts; i++){
-		if(Math.abs(cmp - counts[i]) < minNum){
-			similarNode = i + 1;
-			
-		}
-		
-	}
-	return similarNode;
-	
 }
 
 
@@ -809,8 +367,7 @@ function getDepth(tree, vNod, node, depth){
 	
 	let nod = node;
 	let nEdgesLength = getNeighborsEdges(tree, nod).length; 
-	console.log("tree " + tree);
-	console.log("node " + node);
+
 	for(j = 0; j < tree.length; j++){
 		if(parseInt(tree[j][0]) === node && !vNod.includes(parseInt(tree[j][1]))){
 			depth += nEdgesLength;
@@ -834,7 +391,6 @@ function getMinDepthNodeInTree(tree, visitedNodes, node){
 	let neighEdges = getNeighborsEdges(tree, node);
 	let vNodes = visitedNodes;
 	let oldInd;
-	console.log("num neigh edges: " + neighEdges.length);
 	for(i = 0; i < neighEdges.length; i++){
 		oldInd = i;
 		let newTree = new Array();
@@ -843,31 +399,26 @@ function getMinDepthNodeInTree(tree, visitedNodes, node){
 		});
 		
 		depth = 0;
-		console.log("depth: " + depth + " i: " + i);
 		if(parseInt(neighEdges[i][0]) === node &&
 		!vNodes.includes(parseInt(neighEdges[i][1]))){
 			depth++;
 			vNodes.push(parseInt(neighEdges[i][1]));
 			
 			
-			console.log("neighEdges before: " + neighEdges);
 			depth = getDepth(newTree, vNodes, parseInt(neighEdges[i][1]), depth);
-			console.log("neighEdges after: " + neighEdges);
 			i = oldInd;
 			if(depth < minDepth){
 				minDepth = depth;
 				minDepthNode = parseInt(neighEdges[i][1]);
 				
 			}
-		console.log("depth: " + depth + " i: " + i);
+		
 		}
 		else if(parseInt(neighEdges[i][1]) === node &&
 		!vNodes.includes(parseInt(neighEdges[i][0]))){
 			depth++;
 			vNodes.push(parseInt(neighEdges[i][0]));
-			console.log("neighEdges before: " + neighEdges);
 			depth = getDepth(newTree, vNodes, parseInt(neighEdges[i][0]), depth);
-			console.log("neighEdges after: " + neighEdges);
 			i = oldInd;
 			if(depth < minDepth){
 				console.log(neighEdges);
@@ -875,9 +426,7 @@ function getMinDepthNodeInTree(tree, visitedNodes, node){
 				minDepthNode = parseInt(neighEdges[i][0]);
 				
 			}
-		console.log("depth: " + depth + " i: " + i);
 		}
-		console.log("depth: " + depth + " i: " + i);
 		
 		
 	}
@@ -905,7 +454,6 @@ function getMinNeighborNode(tree, allVisitedNodes){
 		if(neighborCount < minNeighborCount){
 			minNeighborCount = neighborCount;
 			minNeighborNode = i;
-			console.log("neighbor count " + neighborCount);
 		}
 	}
 	
@@ -919,28 +467,18 @@ function getFirstTeam(){
 	let teamNodes0 = new Array();
 	let tree = adjToTree();
 	let membersLeft = nodeCount / 2;
-	let membersCount = membersLeft;
-	let lastGoodNode = 
-	teamNodes0.push(getMinNeighborNode(tree, teamNodes0));
-	let nCount = getNeighborsEdges(tree,teamNodes0[0]);
-	console.log("teamNodes " + teamNodes0);
+	let lastGoodNode = teamNodes0.push(getMinNeighborNode(tree, teamNodes0));
 	membersLeft--;
 	let cnt = 1;
 	for(i = 0; i < membersLeft; i++){
 		let pastI = i;
-		console.log(tree.length);
-		console.log("teamNodes 0 " + teamNodes0);
 		let useddNodes = new Array();
 		teamNodes0.forEach(function(e){
 			useddNodes.push(e);
 		});
 		let lastNode = teamNodes0[i];
-		console.log("lastNode: " + lastNode + " i: " + i);
-		console.log("teamNodes before nods " + teamNodes0);
 		let nods = getMinDepthNodeInTree(tree, useddNodes, lastNode);
 		if(nods !== null){
-			console.log("teamNodes after nods " + teamNodes0);
-			console.log("useddNodes " + useddNodes);
 			teamNodes0.push(nods);
 		}
 		else{
@@ -952,11 +490,8 @@ function getFirstTeam(){
 			teamNodes0.push(teamNodes0[pastI - 1]);
 			let nods = getMinDepthNodeInTree(tree, useddNodes, lastNode);
 			teamNodes0.push(nods);
-			console.log("nods was null");
 		}
 		
-		console.log("nods: " + nods);
-		console.log("teamNodes 1 " + teamNodes0);
 		i = pastI;
 	}
 	return teamNodes0;
@@ -983,50 +518,6 @@ function checkTeamValidity(team){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-function DFSUtil(v, visited) 
-{ 
-	let adj = getAdjacencyStructure();
-    // Mark the current node as visited 
-    visited[v] = true; 
-  
-    // Recur for all the vertices 
-    // adjacent to this vertex 
-   // list<int>::iterator i; 
-  
-    for (i = 0; i < adj.length; ++i) {
-        if (!visited[i]) 
-            DFSUtil(i, visited); 
-	}
-} 
 
 
 
